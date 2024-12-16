@@ -1,0 +1,60 @@
+
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security_checks:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety detect-secrets
+
+      - name: Static Application Security Testing (SAST)
+        run: bandit -r .
+
+      - name: Check for vulnerable dependencies
+        run: safety check --full-report
+
+      - name: Check for secrets
+        run: detect-secrets scan > .secrets.baseline && detect-secrets audit .secrets.baseline
+
+  fail_on_warnings:
+    name: Fail on Warnings
+    runs-on: ubuntu-latest
+    needs: security_checks
+    steps:
+      - name: Check Bandit results
+        run: |
+          if grep -q "Issue:" bandit-output.txt; then
+            echo "SAST failed!";
+            exit 1;
+          fi
+      - name: Check Safety results
+        run: |
+          if grep -q "VULNERABLE" safety-output.txt; then
+            echo "Vulnerable dependencies found!";
+            exit 1;
+          fi
+      - name: Check Secrets results
+        run: |
+          if grep -q "High entropy string detected" detect-secrets-output.txt; then
+            echo "Secrets detected!";
+            exit 1;
+          fi
+
