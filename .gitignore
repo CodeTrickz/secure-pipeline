@@ -1,0 +1,20 @@
+Byte-compiled files
+pycache/ *.py[cod] *$py.class
+
+Virtual environments
+env/ venv/ ENV/ .venv/ *.env
+
+Logs
+*.log *.out *.err
+
+Python dependency files
+*.egg *.egg-info/ dist/ build/ *.wheel
+
+IDE-specifieke bestanden
+.vscode/ .idea/ *.swp
+
+Secrets
+.secrets.baseline
+
+Test coverage rapporten
+.coverage htmlcov/ EOT
